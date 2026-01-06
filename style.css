@@ -1,0 +1,173 @@
+/* --- CORE CSS STYLING --- */
+:root {
+    --primary-color: #004c97; 
+    --secondary-color: #ffd700; 
+    --text-color: #34495e; 
+    --success-color: #27ae60;
+    --danger-color: #e74c3c;
+    --bg-light: #f5f7fa;
+    --info-color: #3498db; /* Added for info/copy buttons */
+}
+
+body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    background: var(--bg-light); 
+    margin: 0; 
+    padding: 0; 
+    color: var(--text-color);
+}
+
+header { 
+    background: var(--primary-color); 
+    color: #fff; 
+    padding: 1.5rem 1rem; 
+    text-align: center; 
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    margin-bottom: 20px;
+}
+ 
+header h1 {
+    margin: 0;
+    font-size: 1.8em;
+}
+
+.container { 
+    max-width: 1000px; 
+    margin: 30px auto; 
+    padding: 25px; 
+    background: #fff; 
+    border-radius: 12px; 
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+h2 { 
+    color: var(--primary-color); 
+    border-bottom: 2px solid var(--secondary-color);
+    padding-bottom: 10px;
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+}
+ 
+h2 i {
+    margin-right: 10px;
+    color: var(--secondary-color);
+}
+
+button { 
+    background: var(--primary-color); 
+    color: #fff; 
+    border: none; 
+    padding: 10px 15px; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    margin: 5px 2px; 
+    transition: background 0.3s, transform 0.1s;
+}
+ 
+button:hover { 
+    background: #0060b0; 
+    transform: translateY(-1px);
+}
+
+/* Copy Link Button Specific Styling */
+.copy-link-btn {
+    padding: 5px 10px !important; 
+    font-size: 0.8em !important; 
+    margin-top: 5px !important; 
+    background-color: var(--info-color) !important;
+    display: inline-block;
+}
+.copy-link-btn:hover { 
+    background-color: #2980b9 !important;
+}
+ 
+/* Dashboard Styles */
+#dashboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 0.9em;
+}
+#dashboard-table th, #dashboard-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+#dashboard-table th {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: bold;
+}
+/* Reading Level Styling */
+.level-frustration { background-color: #f8d7da; color: #721c24; }
+.level-instructional { background-color: #fff3cd; color: #856404; }
+.level-independent, .level-gradeready { background-color: #d4edda; color: #155724; }
+ 
+.hidden { display: none; }
+
+/* Dashboard Summary Grid */
+#summary-metrics {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    padding: 15px;
+    background: #e0f7fa;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #b2ebf2;
+    font-weight: bold;
+}
+#summary-metrics > div {
+    margin: 5px 10px;
+    text-align: center;
+}
+.alert-info {
+    padding: 15px;
+    margin-top: 15px;
+    border-radius: 4px;
+    background-color: #e9f7ff; 
+    border: 1px solid #c7e9ff; 
+    color: #007bff;
+}
+
+/* Generated Link Input Styling */
+.class-link-group {
+    margin-bottom: 15px; 
+    border-bottom: 1px dashed #ccc; 
+    padding-bottom: 10px;
+}
+.class-link-input {
+    width: 100%; 
+    padding: 8px; 
+    border: 1px solid #bdc3c7; 
+    border-radius: 4px; 
+    margin-top: 5px; 
+    cursor: pointer;
+    background-color: #fff; /* Ensure it's white */
+    color: var(--text-color);
+}
+ 
+/* --- PRINT STYLES --- */
+@media print {
+    header, 
+    .alert-info, 
+    #teacherDashboardView button,
+    #teacherDashboardView input,
+    #teacherDashboardView h3:nth-of-type(1),
+    #teacherDashboardView h3:nth-of-type(2),
+    #importStatus,
+    #classLinkOutput {
+        display: none !important;
+    }
+    .container {
+        box-shadow: none; 
+        border: none; 
+        margin: 0;
+        padding: 0;
+    }
+    body {
+        background: #fff; 
+        color: #000;
+    }
+}

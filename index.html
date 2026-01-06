@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phil-IRI JHS Teacher Dashboard Mainframe</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+:root {
+    --primary-color: #004c97;
+    --secondary-color: #ffd700;
+    --text-color: #34495e;
+    --success-color: #27ae60;
+    --danger-color: #e74c3c;
+    --bg-light: #f5f7fa;
+    --info-color: #3498db;
+}
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-light); margin: 0; padding: 0; color: var(--text-color); }
+header { background: var(--primary-color); color: #fff; padding: 1.5rem 1rem; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); margin-bottom:20px;}
+header h1 { margin:0; font-size:1.8em;}
+.container { max-width:1000px; margin:30px auto; padding:25px; background:#fff; border-radius:12px; box-shadow:0 5px 20px rgba(0,0,0,0.1);}
+h2 { color: var(--primary-color); border-bottom:2px solid var(--secondary-color); padding-bottom:10px; margin-top:0; display:flex; align-items:center;}
+h2 i { margin-right:10px; color: var(--secondary-color);}
+button { background: var(--primary-color); color:#fff; border:none; padding:10px 15px; border-radius:6px; cursor:pointer; margin:5px 2px; transition: background 0.3s, transform 0.1s;}
+button:hover { background:#0060b0; transform: translateY(-1px);}
+.copy-link-btn { padding:5px 10px !important; font-size:0.8em !important; margin-top:5px !important; background-color:var(--info-color) !important; display:inline-block;}
+.copy-link-btn:hover { background-color:#2980b9 !important;}
+#dashboard-table { width:100%; border-collapse:collapse; margin-top:20px; font-size:0.9em;}
+#dashboard-table th,#dashboard-table td { border:1px solid #ddd; padding:10px; text-align:left;}
+#dashboard-table th { background-color: var(--primary-color); color:white; font-weight:bold; }
+.level-frustration { background-color:#f8d7da; color:#721c24;}
+.level-instructional { background-color:#fff3cd; color:#856404;}
+.level-independent,.level-gradeready { background-color:#d4edda; color:#155724;}
+.hidden { display:none;}
+#summary-metrics { display:flex; justify-content:space-around; flex-wrap:wrap; padding:15px; background:#e0f7fa; border-radius:8px; margin-bottom:20px; border:1px solid #b2ebf2; font-weight:bold;}
+#summary-metrics>div { margin:5px 10px; text-align:center;}
+.alert-info { padding:15px; margin-top:15px; border-radius:4px; background-color:#e9f7ff; border:1px solid #c7e9ff; color:#007bff;}
+.class-link-group { margin-bottom:15px; border-bottom:1px dashed #ccc; padding-bottom:10px; }
+.class-link-input { width:100%; padding:8px; border:1px solid #bdc3c7; border-radius:4px; margin-top:5px; cursor:pointer; background-color:#fff; color:var(--text-color);}
+@media print { header, .alert-info, #teacherDashboardView button, #teacherDashboardView input, #teacherDashboardView h3:nth-of-type(1), #teacherDashboardView h3:nth-of-type(2), #importStatus, #classLinkOutput { display:none !important;} .container { box-shadow:none; border:none; margin:0; padding:0;} body{background:#fff;color:#000;} }
+</style>
+</head>
+<body>
+
+<header>
+<h1>Phil-IRI JHS Teacher Mainframe</h1>
+<p>Secure Access Granted (Dedicated Dashboard)</p>
+</header>
+
+<div class="container">
+<div id="teacherDashboardView">
+<h2><i class="fas fa-chalkboard-teacher"></i> Teacher Mainframe Dashboard</h2>
+<p class="alert-info">This dashboard summarizes the results of all completed learner assessments.</p>
+
+<div id="summary-metrics"></div>
+
+<h3>Learner List Import and Link Generation</h3>
+<p class="alert-info">Import a CSV file with columns: <strong>Name, Grade, Section</strong>. This will overwrite existing learner list and generate unique access links per class.</p>
+
+<input type="file" id="csvFileInput" accept=".csv" style="margin-bottom:10px;">
+<button onclick="handleCSVUpload()" style="background-color:#2c3e50;"><i class="fas fa-upload"></i> Import and Generate Links</button>
+<div id="importStatus" style="margin-top:10px;font-weight:bold;"></div>
+
+<h3 style="margin-top:30px;"><i class="fas fa-link"></i> Generated Class Links (Copy and Share)</h3>
+<div id="classLinkOutput" style="background:#ecf0f1; padding:15px; border-radius:6px; border:1px solid #bdc3c7;">No class links generated yet. Import a CSV file above.</div>
+
+<hr style="margin-top:30px;margin-bottom:30px;">
+<h3><i class="fas fa-chart-bar"></i> Individual Learner Progress</h3>
+<table id="dashboard-table">
+<thead>
+<tr>
+<th>#</th><th>Name</th><th>Grade</th><th>GST Score (0-40)</th><th>Final Reading Level</th><th>WPM</th><th>Passage Level</th><th>Priority Gap</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+<p id="no-data-message" style="text-align:center;color:var(--danger-color);margin-top:30px;">No learners have been assessed yet.</p>
+
+<button onclick="printDashboard()" style="background-color:var(--primary-color); margin-top:20px;"><i class="fas fa-print"></i> Print Dashboard Results</button>
+<button onclick="clearAllData()" style="background-color:var(--danger-color); margin-top:20px;"><i class="fas fa-trash-alt"></i> Clear All Stored Learner Data</button>
+</div>
+</div>
+
+<script>
+let studentsData = JSON.parse(localStorage.getItem('philiriJHSData')) || [
+    { name: 'Sample Learner', currentGrade: '7', currentSection: 'A', gstScore: 30, finalReadingLevel: 'Independent', skillGap: 'N/A', passageGrade: 'B', wpm: 90 }
+];
+
+window.onload = function() { renderTeacherDashboard(); };
+
+function clearAllData() {
+    if(confirm("This will delete ALL learner data. Proceed?")) {
+        localStorage.removeItem('philiriJHSData'); studentsData=[]; renderTeacherDashboard(); alert("All data cleared."); } }
+
+function printDashboard(){ window.print(); }
+
+function renderTeacherDashboard() {
+    const tbody = document.querySelector('#dashboard-table tbody');
+    const noDataMessage = document.getElementById('no-data-message');
+    const summaryMetrics = document.getElementById('summary-metrics');
+
+    studentsData = JSON.parse(localStorage.getItem('philiriJHSData')) || studentsData;
+
+    tbody.innerHTML=''; summaryMetrics.innerHTML='';
+
+    if(studentsData.length===0){ noDataMessage.style.display='block'; return; }
+    noDataMessage.style.display='none';
+
+    let independent=0, instructional=0, frustration=0, gradeReady=0;
+
+    studentsData.forEach((student,index)=>{
+        const level = (student.finalReadingLevel || 'N/A').split('(')[0].trim();
+        const levelClass = `level-${level.toLowerCase().replace('/', '').replace(' ','').trim()}`;
+        if(level.includes('Grade-Ready')) gradeReady++;
+        else if(level.includes('Independent')) independent++;
+        else if(level.includes('Instructional')) instructional++;
+        else if(level.includes('Frustration')) frustration++;
+
+        const row = tbody.insertRow();
+        row.innerHTML = `<td>${index+1}</td>
+                         <td>${student.name}</td>
+                         <td>${student.currentGrade}</td>
+                         <td>${student.gstScore===null?'N/A':student.gstScore+' / 40'}</td>
+                         <td class="${levelClass}">${student.finalReadingLevel||'N/A'}</td>
+                         <td>${student.wpm||'N/A'}</td>
+                         <td>${student.passageGrade||'N/A'}</td>
+                         <td>${student.skillGap||'N/A'}</td>`;
+    });
+
+    summaryMetrics.innerHTML=`<div><i class="fas fa-users"></i> Total Learners: <span>${studentsData.length}</span></div>
+    <div><i class="fas fa-check-circle"></i> Assessments Completed: <span>${studentsData.filter(s=>s.gstScore!==null).length}</span></div>
+    <div><i class="fas fa-star"></i> GST Passers (Grade-Ready): <span class="level-gradeready">${gradeReady}</span></div>
+    <div><i class="fas fa-book-reader"></i> Instructional: <span class="level-instructional">${instructional}</span></div>
+    <div><i class="fas fa-exclamation-triangle"></i> Frustration: <span class="level-frustration">${frustration}</span></div>`;
+}
+
+// CSV import & link generation
+function handleCSVUpload() {
+    const fileInput = document.getElementById('csvFileInput');
+    const statusDiv = document.getElementById('importStatus');
+    const linkOutputDiv = document.getElementById('classLinkOutput');
+    const file = fileInput.files[0];
+
+    if(!file){ statusDiv.innerHTML='<span style="color:var(--danger-color)">Please select a CSV file.</span>'; return; }
+
+    statusDiv.innerHTML='<span style="color:var(--primary-color)">Processing...</span>';
+    const reader = new FileReader();
+    reader.onload = function(e){ parseCSVAndGenerateLinks(e.target.result); }
+    reader.onerror = function(){ statusDiv.innerHTML='<span style="color:var(--danger-color)">Error reading file.</span>'; }
+    reader.readAsText(file);
+}
+
+function parseCSVAndGenerateLinks(csvText){
+    const statusDiv = document.getElementById('importStatus');
+    const linkOutputDiv = document.getElementById('classLinkOutput');
+
+    try{
+        const lines = csvText.trim().split('\n').filter(l=>l.trim()!=='');
+        if(lines.length<2) throw new Error("CSV must have header + at least 1 row");
+
+        const header = lines[0].split(',').map(h=>h.trim().toLowerCase());
+        const nameIndex = header.indexOf('name'), gradeIndex=header.indexOf('grade'), sectionIndex=header.indexOf('section');
+        if(nameIndex===-1||gradeIndex===-1||sectionIndex===-1) throw new Error("CSV must contain Name, Grade, Section headers");
+
+        let newStudents=[], classList={};
+
+        for(let i=1;i<lines.length;i++){
+            const values=lines[i].split(',').map(v=>v.trim());
+            const studentId = `S${i}-${Date.now().toString(36)}`;
+            const student={id:studentId,name:values[nameIndex],currentGrade:values[gradeIndex],currentSection:values[sectionIndex],gstScore:null,finalReadingLevel:null,skillGap:"Not yet assessed",passageGrade:null,wpm:null,passageScore:null,assessmentStarted:false};
+            newStudents.push(student);
+
+            const classKey=`${student.currentGrade} - ${student.currentSection}`;
+            if(!classList[classKey]) classList[classKey]=[];
+            classList[classKey].push(student.name);
+        }
+
+        studentsData = newStudents;
+        localStorage.setItem('philiriJHSData', JSON.stringify(studentsData));
+        statusDiv.innerHTML='<span style="color:var(--success-color)">Success! Imported '+newStudents.length+' learners.</span>';
+        renderTeacherDashboard();
+        generateClassLinks(classList);
+
+    }catch(err){ statusDiv.innerHTML='<span style="color:var(--danger-color)">Import Failed: '+err.message+'</span>'; linkOutputDiv.innerHTML='No class links generated.';}
+}
+
+function generateClassLinks(classList){
+    const assessmentFile='index.html';
+    const fileName=window.location.href.split('/').pop().split('?')[0];
+    const baseURL=window.location.href.replace(fileName,assessmentFile).split('?')[0];
+
+    let html='';
+    for(const classKey in classList){
+        const classAccessKey=classKey.replace(/\s/g,'_');
+        const classLink=`${baseURL}?class=${classAccessKey}`;
+        const [grade, section]=classKey.split(' - ');
+        html+=`<div class="class-link-group">
+            <p style="margin:0;font-weight:bold;">Grade ${grade} - Section ${section} (${classList[classKey].length} Learners)</p>
+            <input type="text" value="${classLink}" readonly id="link-${classAccessKey}" class="class-link-input" onclick="this.select();">
+            <button onclick="copyLink('${classAccessKey}')" class="copy-link-btn"><i class="fas fa-copy"></i> Copy Link</button>
+        </div>`;
+    }
+    document.getElementById('classLinkOutput').innerHTML=html||'No classes found.';
+}
+
+function copyLink(classKey){
+    const copyText=document.getElementById(`link-${classKey}`);
+    copyText.select(); copyText.setSelectionRange(0,99999);
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(copyText.value).then(()=>alert(`Link for ${classKey.replace(/_/g,' ')} copied!`));
+    }else{ document.execCommand("copy"); alert(`Link for ${classKey.replace(/_/g,' ')} copied! (Legacy)`);}
+}
+</script>
+</body>
+</html>
